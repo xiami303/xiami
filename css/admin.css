@@ -1,0 +1,354 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+html,
+body {
+  cursor: default;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+body {
+  -webkit-flex-direction: column;
+  display: -webkit-flex;
+}
+
+list {
+  display: block;
+  overflow-x: hidden;
+  overflow-y: visible; /* let the container do the scrolling */
+}
+
+list > * {
+  -webkit-padding-end: 20px;
+  -webkit-padding-start: 3px;
+  color: hsl(0, 0%, 70%);
+  display: -webkit-flex;
+  line-height: 20px;
+  margin: 0;
+  overflow: visible;
+  padding-bottom: 0;
+  padding-top: 0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+list > * > * {
+  -webkit-padding-start: 20px;
+  background: 0 50% no-repeat;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre; /* Don't collapse whitespace */
+}
+
+list > * > .label {
+  -webkit-transition: all 150ms;
+  color: black;
+  display: inline-block; /* We need to use inline-block here due to RTL. */
+}
+
+list > * > .url {
+  -webkit-flex: 1;
+  direction: ltr; /* URLs always read LTR */
+  display: none;
+}
+
+list > :hover > .url,
+list > [selected] > .url {
+  display: block;
+}
+
+/* Handle proper padding for URL field in an RTL context, where field order is
+ * |div.url||div.label| - so we need padding at the right of URL, not at the
+ * left. And since url is always LTR, that is padding at the end, not the start.
+ */
+html[dir=rtl] .url {
+  -webkit-padding-end: 20px;
+  -webkit-padding-start: 0;
+}
+
+html[dir=rtl] list .label {
+  background-position: 100% 50%;
+}
+
+list > .folder > .label {
+  background-image: -webkit-image-set(
+      url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAASCAYAAAC5DOVpAAABLElEQVR4Xs2Ur0oEURhHz10UwQkmg6DNZvQFDAafYsHiGgwGg8lg1S5jEcEiNvEBLPZFQbC5yWCSdZf5ez/5wQUHlpW7sqAHPhi+4R4OA3ecmTEtWkyRGYDj7Y0dIGWUztHF/flEMon2DvcRSZIgXl+euL66TYF4maoWV1bpPT4gnPOIls9YXlpQtSEiqlWW7h60wQAMMwQYrG0Gj4V9eFm89zg9uVS1xjVlmBnOV4DhzIPG+/Bc43wddjUif3v+4Zt5QLKGCEmqofZhJKwZT7OsLiVSBTQlEoQy8s8IWS1ZARKVA7AgUiGqNMj6ABEyHaoKKPvfNRJoMMgHBOLKUFmVAUESkOjvrtNH9475uVliGeblWFnn7KabMiHrW21GMDPs99AclQn37/5nX4eJ9e7eNnr7AAAAAElFTkSuQmCC') 1x);
+}
+
+/* We need to ensure that even empty labels take up space */
+list > * > .label:empty::after,
+list > * > .url:empty::after {
+  content: ' ';
+  white-space: pre;
+}
+
+list > .folder > .url:empty::after {
+  content: '';
+}
+
+list > * > button {
+  -webkit-transition: opacity 150ms;
+  background: #fff -webkit-canvas(drop-down-arrow) no-repeat center center;
+  border: 1px solid hsl(214, 91%, 85%);
+  border-radius: 3px;
+  bottom: 1px;
+  display: none;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  right: 3px;
+  top: 1px;
+  width: 15px;
+}
+
+list > [selected]:hover > button,
+list > * > button[menu-shown] {
+  border-color: hsl(214, 91%, 65%);
+}
+
+list > :hover > button {
+  display: block;
+}
+
+list > * > button:hover,
+list > * > button[menu-shown] {
+  display: block;
+}
+
+html[dir=rtl] list > * > button {
+  left: 3px;
+  right: auto;
+}
+
+/* Edit mode */
+
+list [editing] .label input,
+list [editing] .url input {
+  -webkit-margin-end: 4px;
+  -webkit-margin-start: -4px;
+  -webkit-padding-end: 3px;
+  -webkit-padding-start: 3px;
+  box-sizing: content-box;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  /* Do not inherit the line-height. */
+  line-height: normal;
+  margin-bottom: 0;
+  margin-top: 0;
+  min-height: 0;
+  text-decoration: none;
+  vertical-align: baseline;
+}
+
+.tree-item [editing] input {
+  line-height: normal;
+  margin: 0;
+  min-height: 0;
+  padding: 1px 0;
+}
+
+
+
+list > [editing] {
+  overflow: visible;
+}
+
+list [editing] .label,
+list [editing] .url,
+list [editing] > * {
+  overflow: visible;
+}
+
+list [editing] .url {
+  -webkit-padding-start: 5px;
+}
+
+list [editing] input {
+  padding: 1px 0;
+}
+
+/* end editing */
+
+html[dir=rtl] list > .folder > .label {
+  background-image: -webkit-image-set(
+      url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAASCAYAAAC5DOVpAAABRUlEQVR4Xs2UPUvEQBCG39mLnvhZXSEoWghWguAfsNPK1kYUG6+00fYKbSwtBLlrBFv/hKWVpVaWYiESReJdNNlxdhIRwkLIcYhDhmcHss/skuwSM2NQYTDACKoIjnZX9wRtj6fZurjuVJI50ebWBuYXl7SIokh5dnLqGnSCCt0xMz2F+OUB9zePWjMbZWN2QecVZexwcLiD4cYcNIjco4RCqEOBkrC8Bhzvt9rebfLTHYLJUWiYGkAGrMzGMEapCQKboOQDxKFCBCokN0GSA2liawVhmaz7lrE+DlgDmETFlH6pFCLln1VTvURm01/pyATArnbSXCZSGhrTVTNxhZ+2957JbaISJD3JLhC/Cj/B1lY8AXEkYIBtLs6lqchS/qPj9BFL1+fQIwjhf//WL1tZ38b51SX6iCaYuZB9h3eb9C/us28Uf7F5VS9BsgAAAABJRU5ErkJggg==') 1x);
+}
+
+
+
+.main {
+  -webkit-flex: 1;
+  display: -webkit-flex;
+}
+
+#tree-container {
+  -webkit-padding-end: 5px;
+  -webkit-padding-start: 10px;
+  box-sizing: border-box;
+  /* min-width and max-width are used by the split pane. */
+  max-width: 50%;
+  min-width: 50px;
+  overflow: auto;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  width: 200px;
+}
+
+#tree {
+  display: inline-block;
+  min-width: 100%;
+  overflow: visible; /* let the container do the scrolling */
+}
+
+.tree-item > .tree-row {
+  line-height: 20px;
+}
+
+.tree-row .expand-icon {
+  top: 2px;
+}
+
+#list {
+  -webkit-flex: 1;
+  -webkit-padding-end: 5px;
+  box-sizing: border-box;
+  padding-bottom: 5px;
+  padding-top: 5px;
+}
+
+.splitter {
+  -webkit-border-end: 15px solid white;
+  -webkit-border-start: 0;
+  background-color: rgb(235, 239, 249);
+  cursor: e-resize;
+  width: 5px;
+
+}
+
+.logo {
+  -webkit-appearance: none;
+  background: url('data:image/png;base64,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') no-repeat 50% 50%;
+  border: 0;
+  cursor: pointer;
+  float: left;
+  height: 32px;
+  margin: 10px;
+  width: 32px;
+}
+
+html:not(.focus-outline-visible) .logo:focus {
+  outline: none;
+}
+
+.header form {
+  float: left;
+  margin: 14px 2px 0 2px;
+  width: 171px;
+}
+
+.header {
+  min-width: 400px;
+}
+
+html[dir=rtl] .logo,
+html[dir=rtl] .header > div,
+html[dir=rtl] .header form {
+  float: right;
+}
+
+.tree-row.drag-on,
+.drag-on {
+  background-color: hsla(214, 91%, 85%, .5);
+  border: 1px solid hsl(214, 91%, 85%);
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.drag-above::before,
+.drag-below::after {
+  background-clip: padding-box;
+  background-color: black;
+  border: 3px solid black;
+  border-bottom-color: transparent;
+  border-radius: 0;
+  border-top-color: transparent;
+  box-sizing: border-box;
+  content: '';
+  display: block;
+  height: 8px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  z-index: 10;
+}
+
+.drag-above::before {
+  top: calc((8px/2 + 1px) * -1)
+}
+
+.drag-below::after {
+  bottom: calc((8px/2 + 1px) * -1)
+}
+
+list.drag-above::before {
+  top: 0
+}
+
+list > .drag-below,
+list > .drag-above {
+  overflow : visible;
+}
+
+.summary {
+  background-color: rgb(235, 239, 249);
+  border-top: 1px solid rgb(156, 194, 239);
+  clear: both;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.summary > * {
+  display: inline-block;
+  font-size: 100%;
+  margin: 0;
+}
+
+.summary button {
+  -webkit-appearance: none;
+  -webkit-margin-start: 10px;
+  -webkit-padding-end: 11px;
+  -webkit-padding-start: 0;
+  background: transparent -webkit-canvas(drop-down-arrow)
+              no-repeat right center;
+  border: 0;
+  font: inherit;
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+html[dir=rtl] .summary button {
+  background-position: left center;
+}
+
+@media (pointer:coarse) {
+  list > *,
+  menu > button,
+  .tree-item > .tree-row {
+    line-height: 28px;
+  }
+
+  list [editing] input,
+  .tree-item [editing] input {
+    padding: 3px 0;
+  }
+
+  .tree-row .expand-icon {
+    top: 6px;
+  }
+}
